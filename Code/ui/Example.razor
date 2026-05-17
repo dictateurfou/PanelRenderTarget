@@ -1,0 +1,108 @@
+@using Sandbox
+@using Sandbox.UI
+
+@namespace PanelRenderTarget
+@inherits ScreenPanel
+
+<div class="screen">
+	<div class="title">TABLET</div>
+
+	<div class="debug">
+		<div class="test-hover">Hover: @IsHovering</div>
+		<div>Pressed: @IsPressed</div>
+		<div>Clicks: @ClickCount</div>
+		<div>Mouse: @MousePosition</div>
+	</div>
+
+
+
+	<div class="cursor" style="left:@CursorLeft; top:@CursorTop;"></div>
+</div>
+
+@code
+{
+	public Vector2 MousePosition { get; private set; }
+	public bool IsHovering { get; private set; }
+	public bool IsPressed { get; private set; }
+	public int ClickCount { get; private set; }
+
+	private string CursorLeft => $"{MousePosition.x}px";
+	private string CursorTop => $"{MousePosition.y}px";
+
+
+	protected override void OnMouseMove(MousePanelEvent e)
+	{
+		base.OnMouseMove(e);
+		//Log.Info("passe 2");
+		//MousePosition = e.;
+		//SetMouseCapture(true);
+		//Log.Info(e.LocalPosition);
+	}
+
+
+	protected override int BuildHash()
+	{
+		StateHasChanged();
+		var hash = 17;
+		hash = hash * 31 + MousePosition.x.GetHashCode();
+		hash = hash * 31 + MousePosition.y.GetHashCode();
+		hash = hash * 31 + IsHovering.GetHashCode();
+		hash = hash * 31 + IsPressed.GetHashCode();
+		hash = hash * 31 + ClickCount.GetHashCode();
+		return hash;
+	}
+}
+
+<style>
+	.screen {
+		cursor: crosshair;
+		pointer-events: auto;
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		background-color: #06111f;
+		color: white;
+		font-size: 32px;
+		font-weight: bold;
+	}
+
+	.title {
+		position: absolute;
+		left: 40px;
+		top: 40px;
+		color: white;
+		font-size: 64px;
+	}
+
+	.debug {
+		position: absolute;
+		left: 40px;
+		top: 140px;
+		font-size: 28px;
+		color: #9fd4ff;
+		flex-direction: column;
+	}
+
+	.debug:hover {
+		background-color: aqua;
+	}
+
+	.debug:active {
+		background-color: red;
+		}
+
+	.cursor {
+		position: absolute;
+		width: 24px;
+		height: 24px;
+		background-color: red;
+		border-radius: 50%;
+		transform: translate(-50% -50%);
+	}
+
+	.cursor:hover {
+		background-color: yellow;
+	}
+</style>

@@ -1,0 +1,14 @@
+{
+  "Title": "PanelRenderTarget",
+  "Type": "library",
+  "Org": "dicta",
+  "Ident": "panelrendertarget",
+  "Schema": 1,
+  "IncludeSourceFiles": false,
+  "Resources": null,
+  "PackageReferences": [],
+  "EditorReferences": null,
+  "Mounts": null,
+  "IsStandaloneOnly": false,
+  "Metadata": {}
+}
