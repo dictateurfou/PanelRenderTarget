@@ -68,7 +68,7 @@ public class PanelSceneObject : SceneCustomObject
 
 		Graphics.Attributes.SetCombo( "D_WORLDPANEL", 0 );
 		//_panel.MarkRenderDirty();
-		
+
 		_panel.RenderManual();
 
 		if ( CursorVisible && Screen.ShowVirtualCursor )
