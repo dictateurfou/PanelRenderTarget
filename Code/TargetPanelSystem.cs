@@ -36,10 +36,27 @@ public class TargetPanelSystem : GameObjectSystem<TargetPanelSystem>
 		{
 			bool visible = frustrum.IsInside( screen.Renderer.Bounds, partially: true );
 			var panel = screen.RootPanel;
-			if (!visible || screen.WorldPosition.Distance( position ) > screen.UpdateDistanceMax )
+			if (!visible || screen.WorldPosition.Distance( position ) > 5000f )
 			{
 				screen.PanelObject.RenderingEnabled = false;
 				if( panel.Style.Display != DisplayMode.None )
+					panel.Style.Display = DisplayMode.None;
+				continue;
+			}
+
+
+			var worldBounds = screen.Renderer.Bounds;
+			var screenCenter = new Vector2(
+				camera.ScreenRect.Size.x * 0.5f,
+				camera.ScreenRect.Size.y * 0.5f
+			);
+			var ray = camera.ScreenPixelToRay( screenCenter );
+			var touch = worldBounds.Trace( ray, screen.TraceDistance, out _ );
+
+			if ( screen.UpdateWhenNotFocused == false && !touch && screen.PanelObject.InitPassed )
+			{
+				screen.PanelObject.RenderingEnabled = false;
+				if ( panel.Style.Display != DisplayMode.None )
 					panel.Style.Display = DisplayMode.None;
 				continue;
 			}
@@ -48,19 +65,11 @@ public class TargetPanelSystem : GameObjectSystem<TargetPanelSystem>
 			if( panel.Style.Display != DisplayMode.Contents )
 				panel.Style.Display = DisplayMode.Contents;
 
-
-			var worldBounds = screen.Renderer.Bounds;
-			var screenCenter = new Vector2(
-				camera.ScreenRect.Size.x * 0.5f,
-				camera.ScreenRect.Size.y * 0.5f
-			);
-
 			//only execute the tick when aim the model because tick is for input only
-			var ray = camera.ScreenPixelToRay( screenCenter );
-			if ( worldBounds.Trace( ray, screen.TraceDistance, out _ ) )
+			if ( touch )
+			{
 				screen.Tick();
-			
-			
+			}
 		}
 	}
 

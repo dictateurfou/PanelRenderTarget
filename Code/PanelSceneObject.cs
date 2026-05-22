@@ -10,7 +10,7 @@ public class PanelSceneObject : SceneCustomObject
 	private RenderTarget _renderTarget;
 
 	private const float MaxFps = 60;
-	private const float MinInterval = 1f / MaxFps;
+	private float MinInterval = 1f / MaxFps;
 	private float _timeSinceLastRender = 0f;
 
 	public Vector2 CursorPosition { get; set; }
@@ -18,6 +18,10 @@ public class PanelSceneObject : SceneCustomObject
 	public string CursorIcon { get; set; } = "arrow_selector_tool";
 
 	public readonly TargetScreen Screen;
+
+	private int _renderCount = 0;
+
+	public bool InitPassed { get; set; } = false;
 
 	public PanelSceneObject(
 		BBox bound,
@@ -46,13 +50,22 @@ public class PanelSceneObject : SceneCustomObject
 			return;
 
 		_timeSinceLastRender += Time.Delta;
-
-
-		if( !CursorVisible )
+		
+		if ( !CursorVisible)
 			if (_timeSinceLastRender < MinInterval )
 				return;
 
+		if ( Screen.UpdateWhenNotFocused == false && _renderCount > 5 && !CursorVisible )
+		{
+			InitPassed = true;
+			return;
+		}
+
+
 		_timeSinceLastRender = 0f;
+
+		
+		_renderCount++;
 
 		var bounds = new Rect( 0, 0, _texture.Width, _texture.Height );
 
@@ -70,7 +83,7 @@ public class PanelSceneObject : SceneCustomObject
 		//_panel.MarkRenderDirty();
 
 		_panel.RenderManual();
-
+		
 		if ( CursorVisible && Screen.ShowVirtualCursor )
 		{
 			var cursorRect = new Rect(
