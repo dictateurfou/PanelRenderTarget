@@ -8,47 +8,33 @@ public class TargetPanelInput
 {
 	private Panel _hovered;
 	private Panel _active;
-
 	private bool _lastMouseDown;
-	private Vector2 _lastMousePos;
 
-	private Panel _dragTarget;
-	private Panel _dropTarget;
+	private Panel _potentialDrag;
 
-	private bool _dragged;
-
-	private Vector2 _dragStartLocal;
-	private Vector2 _dragStartScreen;
-
-	private MousePanelEvent CreateMouseEvent(string type, Panel panel, Vector2 mousePos, string button )
+	private MousePanelEvent CreateMouseEvent( string type, Panel panel, Vector2 mousePos, string button )
 	{
 		var panelEvent = new MousePanelEvent( type, panel, button );
-		panelEvent.LocalPosition = GetLocalMousePosition( panel, mousePos );
+		panelEvent.LocalPosition = mousePos - panel.Box.Rect.Position + panel.ScrollOffset;
 		return panelEvent;
 	}
-
 
 	public void Tick( RootPanel root, Vector2 mousePos, bool mouseDown, Vector2 mouseWheel )
 	{
 		if ( !root.IsValid() )
 			return;
 
-		var mouseDelta = mousePos - _lastMousePos;
-		var mouseMoved = !mouseDelta.IsNearZeroLength;
-		//root.MousePosition = mousePos;
+		var target = FindPanelAt( root, mousePos );
 		var screenRoot = root as TargetRootPanel;
 		screenRoot.MousePosition = mousePos;
-
-		var target = FindPanelAt( root, mousePos );
-
-		if ( _dragged )
-			UpdateDropTarget( target );
-		else
-			SetHovered( target );
-
-		_hovered?.CreateEvent(
-			CreateMouseEvent( "onmousemove", _hovered, mousePos, "none" )
-		);
+		
+		SetHovered( target );
+		if ( _hovered != null )
+		{
+			_hovered.CreateEvent(
+				CreateMouseEvent( "onmousemove", _hovered, mousePos, "none" )
+			);
+		}
 
 		if ( _hovered != null && mouseWheel.Length > 0 )
 		{
@@ -61,16 +47,8 @@ public class TargetPanelInput
 
 			if ( _active != null )
 			{
+				_potentialDrag = FindDragTarget( _active );
 				SwitchPseudoClass( PseudoClass.Active, true, _active );
-
-				_dragTarget = FindDragTarget( _active );
-				_dragged = false;
-
-				if ( _dragTarget != null )
-				{
-					_dragStartLocal = GetLocalMousePosition( _dragTarget, mousePos );
-					_dragStartScreen = mousePos;
-				}
 
 				_active.CreateEvent(
 					CreateMouseEvent( "onmousedown", _active, mousePos, "mouseleft" )
@@ -78,76 +56,20 @@ public class TargetPanelInput
 			}
 		}
 
-		if ( mouseDown && _lastMouseDown && _dragTarget != null && mouseMoved )
-		{
-			var currentLocal = GetLocalMousePosition( _dragTarget, mousePos );
-			var delta = _dragStartLocal - currentLocal;
-
-			if ( !_dragged && delta.Length > 5.0f )
-			{
-				_dragged = true;
-				//wait the next maj with DragEvent support for uncoment
-				/*_dragTarget.CreateEvent(
-					new DragEvent( "ondragstart", _dragTarget, _dragStartLocal, _dragStartScreen )
-				);*/
-
-				if ( _active != null )
-				{
-					SwitchPseudoClass( PseudoClass.Active, false, _active );
-					SwitchPseudoClass( PseudoClass.Hover, false, _active );
-
-					_active.CreateEvent(
-						CreateMouseEvent( "onmouseup", _active, mousePos, "mouseleft" )
-					);
-
-					_active = null;
-				}
-			}
-
-			if ( _dragged )
-			{
-				//wait the next maj with DragEvent support for uncoment
-				/*_dragTarget.CreateEvent(
-					new DragEvent( "ondrag", _dragTarget, _dragStartLocal, _dragStartScreen )
-					{
-						MouseDelta = mouseDelta
-					}
-				);*/
-			}
-		}
-
 		if ( !mouseDown && _lastMouseDown )
 		{
-			if ( _dragged && _dragTarget != null )
-			{
-				//wait the next maj with DragEvent support for uncoment
-				/*_dragTarget.CreateEvent(
-					new DragEvent( "ondragend", _dragTarget, _dragStartLocal, _dragStartScreen )
-				);*/
-
-				if ( _dropTarget != null )
-				{
-					_dropTarget.CreateEvent(
-						new PanelEvent( "ondrop", _dragTarget )
-					);
-				}
-
-				ClearDropTarget();
-				ClearDrag();
-			}
-			else if ( _active != null )
+			if ( _active != null )
 			{
 				_active.CreateEvent(
-					new MousePanelEvent( "onmouseup", _active, "mouseleft" )
+					CreateMouseEvent( "onmouseup", _active, mousePos, "mouseleft" )
 				);
 
 				if ( _active == _hovered )
 				{
 					_active.CreateEvent(
-						new MousePanelEvent( "onclick", _active, "mouseleft" )
+						CreateMouseEvent( "onclick", _active, mousePos, "mouseleft" )
 					);
 				}
-
 				SwitchPseudoClass( PseudoClass.Active, false, _active );
 			}
 
@@ -155,48 +77,6 @@ public class TargetPanelInput
 		}
 
 		_lastMouseDown = mouseDown;
-		_lastMousePos = mousePos;
-	}
-
-	private void UpdateDropTarget( Panel current )
-	{
-		if ( current == _dropTarget )
-			return;
-
-		_dropTarget?.CreateEvent(
-			new PanelEvent( "ondragleave", _dragTarget )
-		);
-
-		_dropTarget = current;
-
-		_dropTarget?.CreateEvent(
-			new PanelEvent( "ondragenter", _dragTarget )
-		);
-	}
-
-	private void ClearDropTarget()
-	{
-		if ( _dropTarget == null )
-			return;
-
-		_dropTarget.CreateEvent(
-			new PanelEvent( "ondragleave", _dragTarget )
-		);
-
-		_dropTarget = null;
-	}
-
-	private void ClearDrag()
-	{
-		_dragTarget = null;
-		_dragged = false;
-		_dragStartLocal = default;
-		_dragStartScreen = default;
-	}
-
-	private static Vector2 GetLocalMousePosition( Panel panel, Vector2 mousePos )
-	{
-		return mousePos - panel.Box.Rect.Position + panel.ScrollOffset;
 	}
 
 	private Panel FindDragTarget( Panel panel )
@@ -215,8 +95,6 @@ public class TargetPanelInput
 	public void Clear()
 	{
 		SetHovered( null );
-		ClearDropTarget();
-		ClearDrag();
 
 		if ( _active != null )
 		{
@@ -225,7 +103,6 @@ public class TargetPanelInput
 		}
 
 		_lastMouseDown = false;
-		_lastMousePos = default;
 	}
 
 	private void SetHovered( Panel current )
@@ -278,59 +155,28 @@ public class TargetPanelInput
 
 	private Panel FindPanelAt( Panel root, Vector2 pos )
 	{
-		Panel current = null;
-		CheckHoverRecursive( root, pos, ref current );
-		return current;
-	}
+		if ( root == null || !root.IsValid() || !root.IsVisible )
+			return null;
 
-	private bool CheckHoverRecursive( Panel panel, Vector2 pos, ref Panel current )
-	{
-		if ( panel == null )
-			return false;
+		if ( !root.Box.Rect.IsInside( pos ) )
+			return null;
 
-		if ( !panel.IsVisible )
-			return false;
+		// Trier les enfants par z-index décroissant pour tester le plus haut en premier
+		var children = root.Children?
+			.Where( x => x != null && x.IsValid() && x.IsVisible )
+			.OrderByDescending( x => x.ComputedStyle?.ZIndex ?? 0 )
+			.ThenByDescending( x => x.SiblingIndex );
 
-		//we cant use that maybe find another way for make panel ignore input
-		/*if ( panel.ComputedStyle?.PointerEvents == PointerEvents.None )
-			return false;*/
-
-		var inside = panel.Box.Rect.IsInside( pos );
-		var found = false;
-
-		if ( inside )
+		if ( children != null )
 		{
-			current = panel;
-			found = true;
-		}
-
-		
-		if ( !inside && PanelClipsChildren( panel ) )
-			return found;
-
-		var children = panel.Children?.ToArray();
-
-		if ( children == null || children.Length == 0 )
-			return found;
-
-		
-		for ( var i = children.Length - 1; i >= 0; i-- )
-		{
-			var child = children[i];
-
-			if ( CheckHoverRecursive( child, pos, ref current ) )
+			foreach ( var child in children )
 			{
-				found = true;
-				break;
+				var hit = FindPanelAt( child, pos );
+				if ( hit != null )
+					return hit;
 			}
 		}
 
-		return found;
-	}
-
-	private static bool PanelClipsChildren( Panel panel )
-	{
-		var overflow = panel.ComputedStyle?.Overflow ?? OverflowMode.Visible;
-		return overflow != OverflowMode.Visible;
+		return root;
 	}
 }

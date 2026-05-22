@@ -14,7 +14,7 @@ public class PanelSceneObject : SceneCustomObject
 	private float _timeSinceLastRender = 0f;
 
 	public Vector2 CursorPosition { get; set; }
-	public bool CursorVisible { get; set; } = true;
+	public bool CursorVisible { get; set; } = false;
 	public string CursorIcon { get; set; } = "arrow_selector_tool";
 
 	public readonly TargetScreen Screen;
@@ -74,7 +74,7 @@ public class PanelSceneObject : SceneCustomObject
 		if ( CursorVisible && Screen.ShowVirtualCursor )
 		{
 			var cursorRect = new Rect(
-				CursorPosition.x - 8,
+				CursorPosition.x,
 				CursorPosition.y - 8,
 				0,
 				0

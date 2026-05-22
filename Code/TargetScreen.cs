@@ -107,7 +107,8 @@ public class TargetScreen : Component, Component.DontExecuteOnServer, ITargetScr
 			RenderedManually = true,
 			FixedBounds = bounds,
 			FixedScale = 1f,
-			PanelBounds = bounds
+			PanelBounds = bounds,
+			MouseVisibility = ScreenCursorInteraction ? MouseVisibility.Visible : MouseVisibility.Hidden
 		};
 
 		_rootPanel.Style.Width = Length.Pixels( ScreenTextureSize.x );

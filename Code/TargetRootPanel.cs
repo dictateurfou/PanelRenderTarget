@@ -10,9 +10,22 @@ public class TargetRootPanel : RootPanel
 
 	public new Vector2 MousePosition { get; set; }
 
+	public MouseVisibility MouseVisibility { get; set; } = MouseVisibility.Hidden;
+
+	public override void Tick()
+	{
+		base.Tick();
+		//set visibility only if we want
+
+		if( MouseVisibility == MouseVisibility.Visible && Mouse.Visibility != MouseVisibility.Visible )
+		{
+			Mouse.Visibility = MouseVisibility.Visible;
+		}
+	}
+
 	protected override void UpdateBounds( Rect rect )
 	{
-		Mouse.Visibility = MouseVisibility.Visible;
+		
 		PanelBounds = FixedBounds;
 		//this.Mouse
 	}
@@ -22,8 +35,13 @@ public class TargetRootPanel : RootPanel
 		Scale = FixedScale;
 	}
 
-	public void Test()
+
+	public override void OnDeleted()
 	{
-		
+		base.OnDeleted();
+		if( MouseVisibility == MouseVisibility.Visible )
+		{
+			Mouse.Visibility = MouseVisibility.Hidden;
+		}
 	}
 }
