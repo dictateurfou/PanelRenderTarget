@@ -9,12 +9,10 @@ public class PanelSceneObject : SceneCustomObject
 	private readonly Texture _texture;
 	private RenderTarget _renderTarget;
 
-	private const float MaxFps = 60;
-	private float MinInterval = 1f / MaxFps;
 	private float _timeSinceLastRender = 0f;
 
 	public Vector2 CursorPosition { get; set; }
-	public bool CursorVisible { get; set; } = false;
+	public bool IsFocus { get; set; } = false;
 	public string CursorIcon { get; set; } = "arrow_selector_tool";
 
 	public readonly TargetScreen Screen;
@@ -45,17 +43,20 @@ public class PanelSceneObject : SceneCustomObject
 	public override void RenderSceneObject()
 	{
 		base.RenderSceneObject();
-		//Log.Info( "RenderSceneObject" );
 		if ( !_texture.IsLoaded || !_panel.IsValid() )
 			return;
 
 		_timeSinceLastRender += Time.Delta;
-		
-		if ( !CursorVisible)
-			if (_timeSinceLastRender < MinInterval )
-				return;
 
-		if ( Screen.UpdateWhenNotFocused == false && _renderCount > 5 && !CursorVisible )
+		var updateRate = IsFocus
+			? 1f / Screen.UpdateRateFocus
+			: 1f / Screen.UpdateRateNotFocused;
+
+		if ( InitPassed && _timeSinceLastRender < updateRate )
+			return;
+
+		//we make 5 render init because with alot of panel some doesnt update the texture full
+		if ((!IsFocus && Screen.UpdateWhenNotFocused == false) && _renderCount > 5 )
 		{
 			InitPassed = true;
 			return;
@@ -84,7 +85,7 @@ public class PanelSceneObject : SceneCustomObject
 
 		_panel.RenderManual();
 		
-		if ( CursorVisible && Screen.ShowVirtualCursor )
+		if ( IsFocus && Screen.ShowVirtualCursor )
 		{
 			var cursorRect = new Rect(
 				CursorPosition.x,

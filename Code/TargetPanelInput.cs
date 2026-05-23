@@ -55,7 +55,6 @@ public class TargetPanelInput
 				);
 			}
 		}
-
 		if ( !mouseDown && _lastMouseDown )
 		{
 			if ( _active != null )
@@ -69,6 +68,11 @@ public class TargetPanelInput
 					_active.CreateEvent(
 						CreateMouseEvent( "onclick", _active, mousePos, "mouseleft" )
 					);
+
+					if (_active.AcceptsFocus)
+					{
+						_active.Focus();
+					}
 				}
 				SwitchPseudoClass( PseudoClass.Active, false, _active );
 			}

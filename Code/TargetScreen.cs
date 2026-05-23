@@ -76,7 +76,7 @@ public class TargetScreen : Component, Component.DontExecuteOnServer, ITargetScr
 
 		OnPanelCreated( Panel );
 
-		var panelComponent = this.Components.Get<PanelComponent>();
+		var panelComponent = Components.Get<PanelComponent>();
 		TargetPanelSystem.Current.RegisterScreen( this );
 	}
 
@@ -156,7 +156,6 @@ public class TargetScreen : Component, Component.DontExecuteOnServer, ITargetScr
 			return;
 		}
 
-		_panelObject.CursorVisible = true;
 		_panelObject.CursorPosition = panelPos;
 		
 		_input.Tick(
@@ -242,9 +241,6 @@ public class TargetScreen : Component, Component.DontExecuteOnServer, ITargetScr
 	private void ClearInput()
 	{
 		_input.Clear();
-
-		if ( _panelObject is not null )
-			_panelObject.CursorVisible = false;
 	}
 
 	protected override void OnDisabled()

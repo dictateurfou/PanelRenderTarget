@@ -5,18 +5,21 @@
 @inherits ScreenPanel
 
 <div class="screen">
-	<div class="title">TABLET</div>
+	<div class="title">Example</div>
 
-	<div class="debug">
+	<div class="debug" @onclick=@Click @onmouseover=@OnDebugMouseOver @onmouseout=@OnDebugMouseOut>
 		<div class="test-hover">Hover: @IsHovering</div>
 		<div>Pressed: @IsPressed</div>
 		<div>Clicks: @ClickCount</div>
 		<div>Mouse: @MousePosition</div>
+
+		<TextEntry @onclick=@TestClick Value:Bind=@test placeholder="Quantitée" />
 	</div>
 
-
+	
 
 	<div class="cursor" style="left:@CursorLeft; top:@CursorTop;"></div>
+	
 </div>
 
 @code
@@ -29,16 +32,46 @@
 	private string CursorLeft => $"{MousePosition.x}px";
 	private string CursorTop => $"{MousePosition.y}px";
 
+	public string test { get; set; } = "teste";
 
 	protected override void OnMouseMove(MousePanelEvent e)
 	{
 		base.OnMouseMove(e);
-		//Log.Info("passe 2");
-		//MousePosition = e.;
-		//SetMouseCapture(true);
-		//Log.Info(e.LocalPosition);
+		var root = FindRootPanel() as TargetRootPanel;
+		//MousePosition = root.MousePosition;
 	}
 
+	public void OnDebugMouseOver(PanelEvent e)
+	{
+		IsHovering = true;
+	}
+
+	public void OnDebugMouseOut(PanelEvent e)
+	{
+		IsHovering = false;
+	}
+
+	public void TestClick(PanelEvent e)
+	{
+		Log.Info("Clicked on text entry");
+	}
+
+	protected override void OnMouseDown(MousePanelEvent e)
+	{
+		base.OnMouseDown(e);
+		IsPressed = true;
+	}
+
+	protected override void OnMouseUp(MousePanelEvent e)
+	{
+		base.OnMouseUp(e);
+		IsPressed = false;
+	}
+
+	public void Click(PanelEvent e)
+	{
+		ClickCount++;
+	}
 
 	protected override int BuildHash()
 	{
@@ -83,14 +116,15 @@
 		font-size: 28px;
 		color: #9fd4ff;
 		flex-direction: column;
+		width:400px;
 	}
 
-	.debug:hover {
-		background-color: aqua;
-	}
+		.debug:hover {
+			background-color: aqua;
+		}
 
-	.debug:active {
-		background-color: red;
+		.debug:active {
+			background-color: red;
 		}
 
 	.cursor {
@@ -100,9 +134,5 @@
 		background-color: red;
 		border-radius: 50%;
 		transform: translate(-50% -50%);
-	}
-
-	.cursor:hover {
-		background-color: yellow;
 	}
 </style>

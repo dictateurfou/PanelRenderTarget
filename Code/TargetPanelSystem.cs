@@ -36,10 +36,13 @@ public class TargetPanelSystem : GameObjectSystem<TargetPanelSystem>
 		{
 			bool visible = frustrum.IsInside( screen.Renderer.Bounds, partially: true );
 			var panel = screen.RootPanel;
-			if (!visible || screen.WorldPosition.Distance( position ) > 5000f )
+			var initPassed = screen.PanelObject.InitPassed;
+			screen.PanelObject.IsFocus = false;
+			
+			if (!visible || (screen.WorldPosition.Distance( position ) > screen.UpdateDistanceMax && initPassed ))
 			{
 				screen.PanelObject.RenderingEnabled = false;
-				if( panel.Style.Display != DisplayMode.None )
+				if ( panel.Style.Display != DisplayMode.None )
 					panel.Style.Display = DisplayMode.None;
 				continue;
 			}
@@ -53,7 +56,7 @@ public class TargetPanelSystem : GameObjectSystem<TargetPanelSystem>
 			var ray = camera.ScreenPixelToRay( screenCenter );
 			var touch = worldBounds.Trace( ray, screen.TraceDistance, out _ );
 
-			if ( screen.UpdateWhenNotFocused == false && !touch && screen.PanelObject.InitPassed )
+			if ( screen.UpdateWhenNotFocused == false && !touch && initPassed )
 			{
 				screen.PanelObject.RenderingEnabled = false;
 				if ( panel.Style.Display != DisplayMode.None )
@@ -68,18 +71,20 @@ public class TargetPanelSystem : GameObjectSystem<TargetPanelSystem>
 			//only execute the tick when aim the model because tick is for input only
 			if ( touch )
 			{
+				screen.PanelObject.IsFocus = true;
 				screen.Tick();
 			}
 		}
 	}
 
 
-	public void CreatePanelScreen( GameObject go, string screenMaterialName, Material material, Vector2Int size )
+	public void CreatePanelScreen<T>( GameObject go, string screenMaterialName, Material material, Vector2Int size)
 	{
 		var comp = go.AddComponent<TargetScreen>( false );
 		comp.ScreenMaterialName = screenMaterialName;
 		comp.ScreenMaterial = material;
 		comp.ScreenTextureSize = size;
+		comp.PanelType.TypeName = typeof(T).FullName;
 		comp.Enabled = true;
 	}
 }
