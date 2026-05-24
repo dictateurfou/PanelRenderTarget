@@ -19,6 +19,19 @@ public class TargetPanelInput
 		return panelEvent;
 	}
 
+	private Panel FindFocusableParent( Panel panel )
+	{
+		while ( panel != null )
+		{
+			if ( panel.AcceptsFocus )
+				return panel;
+
+			panel = panel.Parent;
+		}
+
+		return null;
+	}
+
 	public void Tick( RootPanel root, Vector2 mousePos, bool mouseDown, Vector2 mouseWheel )
 	{
 		if ( !root.IsValid() )
@@ -26,9 +39,12 @@ public class TargetPanelInput
 
 		var target = FindPanelAt( root, mousePos );
 		var screenRoot = root as TargetRootPanel;
-		screenRoot.MousePosition = mousePos;
-		
+
+		if ( screenRoot != null )
+			screenRoot.MousePosition = mousePos;
+
 		SetHovered( target );
+
 		if ( _hovered != null )
 		{
 			_hovered.CreateEvent(
@@ -48,13 +64,30 @@ public class TargetPanelInput
 			if ( _active != null )
 			{
 				_potentialDrag = FindDragTarget( _active );
+
 				SwitchPseudoClass( PseudoClass.Active, true, _active );
 
 				_active.CreateEvent(
 					CreateMouseEvent( "onmousedown", _active, mousePos, "mouseleft" )
 				);
+
+				var focusTarget = FindFocusableParent( _active );
+
+				if ( focusTarget != null )
+				{
+					InputFocus.Set( focusTarget );
+				}
+				else
+				{
+					InputFocus.Clear();
+				}
+			}
+			else
+			{
+				InputFocus.Clear();
 			}
 		}
+
 		if ( !mouseDown && _lastMouseDown )
 		{
 			if ( _active != null )
@@ -68,12 +101,8 @@ public class TargetPanelInput
 					_active.CreateEvent(
 						CreateMouseEvent( "onclick", _active, mousePos, "mouseleft" )
 					);
-
-					if (_active.AcceptsFocus)
-					{
-						_active.Focus();
-					}
 				}
+
 				SwitchPseudoClass( PseudoClass.Active, false, _active );
 			}
 
