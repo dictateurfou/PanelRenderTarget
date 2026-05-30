@@ -41,7 +41,7 @@ public class TargetRootPanel : RootPanel
 		base.OnDeleted();
 		if( MouseVisibility == MouseVisibility.Visible )
 		{
-			Mouse.Visibility = MouseVisibility.Hidden;
+			Mouse.Visibility = MouseVisibility.Auto;
 		}
 	}
 }
