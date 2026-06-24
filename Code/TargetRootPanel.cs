@@ -15,8 +15,6 @@ public class TargetRootPanel : RootPanel
 	public override void Tick()
 	{
 		base.Tick();
-		//set visibility only if we want
-
 		if( MouseVisibility == MouseVisibility.Visible && Mouse.Visibility != MouseVisibility.Visible )
 		{
 			Mouse.Visibility = MouseVisibility.Visible;

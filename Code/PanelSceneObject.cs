@@ -73,7 +73,7 @@ public class PanelSceneObject : SceneCustomObject
 		_panel.FixedBounds = bounds;
 		_panel.PanelBounds = bounds;
 		_panel.FixedScale = 1f;
-
+		//_panel.Scale = 1f;
 		var oldTarget = Graphics.RenderTarget;
 		var oldViewport = Graphics.Viewport;
 

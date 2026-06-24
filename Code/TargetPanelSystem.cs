@@ -78,13 +78,14 @@ public class TargetPanelSystem : GameObjectSystem<TargetPanelSystem>
 	}
 
 
-	public void CreatePanelScreen<T>( GameObject go, string screenMaterialName, Material material, Vector2Int size)
+	public void CreatePanelScreen<T>( GameObject go, string screenMaterialName, Material material, Vector2Int size )
+		where T : PanelRenderTarget.ScreenPanel
 	{
 		var comp = go.AddComponent<TargetScreen>( false );
 		comp.ScreenMaterialName = screenMaterialName;
 		comp.ScreenMaterial = material;
 		comp.ScreenTextureSize = size;
-		comp.PanelType.TypeName = typeof(T).FullName;
+		comp.PanelType.TypeName = typeof( T ).FullName;
 		comp.Enabled = true;
 	}
 }
